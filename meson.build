@@ -14,6 +14,7 @@ deps = [
   dependency('libavutil'),
   dependency('libavfilter'),
   dependency('libswscale'),
+  dependency('gtkmm-3.0', version: '>=3.0.0'),
   spdlog_proj.get_variable('spdlog_dep'),
   cli11_proj.get_variable('CLI11_dep')
 ]
@@ -38,7 +39,7 @@ vivictpplib = static_library('vivictpplib', 'src/libav/Decoder.cc', 'src/libav/F
                              'src/libav/Packet.cc', 'src/vmaf/VmafLog.cc',
                              'src/libav/Frame.cc', 'src/logging/Logging.cc',
                              'src/ui/VmafGraph.cc', 'src/ui/Fonts.cc', 'src/ui/TextTexture.cc',
-                             'src/Controller.cc',
+                             'src/Controller.cc', 'src/gtk/Application.cc', 'src/gtk/ApplicationWindow.cc',
                              dependencies: deps, include_directories: incdir)
 
 executable('vivictpp', 'src/main.cc', link_with: vivictpplib, dependencies: deps,

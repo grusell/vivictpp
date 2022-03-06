@@ -86,16 +86,16 @@ vivictpp::KeyModifiers getKeyModifiers() {
   return {!!(modState & KMOD_SHIFT), !!(modState & KMOD_CTRL), !!(modState & KMOD_ALT)};
 }
 
-void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
+void vivictpp::sdl::SDLEventLoop::start(EventListener *eventListener) {
   logger->debug("SDLEventLoop::start");
   SDL_Event event;
   while (!quit.load()) {
     while (SDL_WaitEventTimeout(&event, 100) && !quit.load()) {
       logger->trace("Recieved event type={}", event.type);
       if (event.type == refreshEventType.type) {
-        eventListener.refreshDisplay();
+        eventListener->refreshDisplay();
       } else if (event.type == advanceFrameEventType.type) {
-        eventListener.advanceFrame();
+        eventListener->advanceFrame();
       } else if (event.type == checkMouseDragEventType.type) {
         if (mouseState.button && !mouseState.dragging &&
             mouseState.buttonTime != 0 &&
@@ -104,9 +104,9 @@ void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
           screenOutput.setCursorHand();
         }
       } else if(event.type == queueAudioEventType.type) {
-        eventListener.queueAudio();
+        eventListener->queueAudio();
       } else if(event.type == fadeEventType.type) {
-        eventListener.fade();
+        eventListener->fade();
       } else
         switch (event.type) {
         case SDL_QUIT:
@@ -115,13 +115,13 @@ void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
         case SDL_MOUSEMOTION: {
           SDL_MouseMotionEvent mouseEvent = event.motion;
           if (!mouseState.dragging) {
-            eventListener.mouseMotion(mouseEvent.x, mouseEvent.y);
+            eventListener->mouseMotion(mouseEvent.x, mouseEvent.y);
           } else {
-            eventListener.mouseDrag(mouseEvent.xrel, mouseEvent.yrel);
+            eventListener->mouseDrag(mouseEvent.xrel, mouseEvent.yrel);
           }
         } break;
         case SDL_MOUSEWHEEL:
-          eventListener.mouseWheel(event.wheel.x, event.wheel.y);
+          eventListener->mouseWheel(event.wheel.x, event.wheel.y);
           break;
         case SDL_MOUSEBUTTONDOWN: {
           mouseState.button = true;
@@ -131,7 +131,7 @@ void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
         case SDL_MOUSEBUTTONUP: {
           SDL_MouseButtonEvent mouseEvent = event.button;
           if (!mouseState.dragging) {
-            eventListener.mouseClick(mouseEvent.x, mouseEvent.y);
+            eventListener->mouseClick(mouseEvent.x, mouseEvent.y);
           } else {
             screenOutput.setCursorDefault();
           }
@@ -141,7 +141,7 @@ void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
         } break;
         case SDL_KEYDOWN: {
           SDL_KeyboardEvent kbe = event.key;
-          eventListener.keyPressed(std::string(SDL_GetKeyName(kbe.keysym.sym)),
+          eventListener->keyPressed(std::string(SDL_GetKeyName(kbe.keysym.sym)),
                                    getKeyModifiers());
         } break;
         case SDL_WINDOWEVENT: {
@@ -149,7 +149,7 @@ void vivictpp::sdl::SDLEventLoop::start(EventListener &eventListener) {
             logger->debug("Window {} size changed to {}x{}",
                          event.window.windowID, event.window.data1,
                          event.window.data2);
-            eventListener.refreshDisplay();
+            eventListener->refreshDisplay();
           }
         } break;
         }

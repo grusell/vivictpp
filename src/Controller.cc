@@ -15,8 +15,8 @@ VideoMetadata* metadataPtr(const std::vector<VideoMetadata> &v) {
 }
 
 
-vivictpp::Controller::Controller(std::shared_ptr<EventLoop> eventLoop,
-                                 std::shared_ptr<vivictpp::ui::Display> display,
+vivictpp::Controller::Controller(EventLoop *eventLoop,
+                                 vivictpp::ui::Display *display,
                                  VivictPPConfig vivictPPConfig)
   : eventLoop(eventLoop),
     display(display),
@@ -36,7 +36,7 @@ vivictpp::Controller::Controller(std::shared_ptr<EventLoop> eventLoop,
 
 int vivictpp::Controller::run() {
 //  eventLoop.scheduleAdvanceFrame(5);
-  eventLoop->start(*this);
+  eventLoop->start(this);
   logger->debug("vivictpp::Controller::run exit");
   return 0;
 }

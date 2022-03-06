@@ -60,7 +60,7 @@ struct AudioFrames {
 class VivictPP  {
 public:
   VivictPP(VivictPPConfig vivictPPConfig,
-           std::shared_ptr<EventScheduler> eventScheduler,
+           EventScheduler *eventScheduler,
            vivictpp::audio::AudioOutputFactory &audioOutputFactory);
   virtual ~VivictPP() = default;
   void advanceFrame();
@@ -100,7 +100,7 @@ public:
 
  private:
   PlayerState state;
-  std::shared_ptr<EventScheduler> eventScheduler;
+  EventScheduler *eventScheduler;
   VideoInputs videoInputs;
   std::shared_ptr<vivictpp::audio::AudioOutput> audioOutput;
   vivictpp::time::Time frameDuration;

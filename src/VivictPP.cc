@@ -39,7 +39,7 @@ PlaybackState PlayerState::togglePlaying() {
   }
 
 VivictPP::VivictPP(VivictPPConfig vivictPPConfig,
-                   std::shared_ptr<EventScheduler> eventScheduler,
+                   EventScheduler *eventScheduler,
                    vivictpp::audio::AudioOutputFactory &audioOutputFactory)
   : state(),
     eventScheduler(eventScheduler),

@@ -18,8 +18,8 @@ namespace vivictpp {
 
 class Controller : vivictpp::EventListener {
 public:
-  Controller(std::shared_ptr<EventLoop> eventLoop,
-             std::shared_ptr<vivictpp::ui::Display> display,
+  Controller(EventLoop *eventLoop,
+             vivictpp::ui::Display *display,
              VivictPPConfig vivictPPConfig);
   int run();
   void mouseDrag(const int xrel, const int yrel) override;
@@ -33,13 +33,13 @@ public:
   void fade() override;
   void onQuit();
   const PlayerState &getPlayerState() { return vivictPP.getPlayerState(); }
-  
+
 private:
   void togglePlaying();
 
 private:
-  std::shared_ptr<EventLoop> eventLoop;
-  std::shared_ptr<vivictpp::ui::Display> display;
+  EventLoop *eventLoop;
+  vivictpp::ui::Display *display;
   VivictPP vivictPP;
   vivictpp::ui::DisplayState displayState;
   bool splitScreenDisabled;

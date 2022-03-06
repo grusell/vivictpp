@@ -14,6 +14,7 @@
 #include "Controller.hh"
 #include "SourceConfig.hh"
 #include "vmaf/VmafLog.hh"
+#include "gtk/Application.hh"
 
 #include "CLI/App.hpp"
 #include "CLI/Formatter.hpp"
@@ -55,6 +56,10 @@ Vivict++ )" + std::string(VPP_VERSION) + " " + std::string(VPP_GIT_HASH);
 
 int main(int argc, char **argv) {
   try {
+    vivictpp::logging::initializeLogging();
+    /*
+    auto gtkApp = Gtk::Application::create(argc, argv, "se.svt.vivictpp");
+
     CLI::App app{"Vivict++ - Vivict Video Comparison Tool ++"};
     app.footer(FOOTER);
 
@@ -86,7 +91,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> filters = {leftFilter, rightFilter};
     std::vector<std::string> vmafLogfiles = {leftVmaf, rightVmaf};
 
-    vivictpp::logging::initializeLogging();
+
 
     std::vector<SourceConfig> sourceConfigs;
     for (size_t i = 0; i<sources.size(); i++) {
@@ -100,9 +105,24 @@ int main(int argc, char **argv) {
     }
 
     VivictPPConfig vivictPPConfig(sourceConfigs, disableAudio);
-    auto sdlEventLoop = std::make_shared<vivictpp::sdl::SDLEventLoop>(vivictPPConfig.sourceConfigs);
-    vivictpp::Controller controller(sdlEventLoop, sdlEventLoop, vivictPPConfig);
-    return controller.run();
+
+//    auto eventLoop = std::make_shared<vivictpp::sdl::SDLEventLoop>(vivictPPConfig.sourceConfigs);
+
+
+    std::shared_ptr<vivictpp::gtk::GtkApplication> g(std::make_shared<vivictpp::gtk::GtkApplication>());
+
+    //   vivictpp::Controller controller(eventLoop, eventLoop, vivictPPConfig);
+    vivictpp::Controller controller(g, g, vivictPPConfig);
+
+
+    return gtkApp->run(*g);
+    */
+
+    
+    auto application = vivictpp::gtk::Application::create();
+    return application->run(argc, argv);
+
+//    return controller.run();
   } catch (const std::exception &e) {
     std::cerr << "Vivict had an unexpected error: " << e.what() << std::endl;
     return 1;

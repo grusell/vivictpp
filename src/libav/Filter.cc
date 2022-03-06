@@ -107,7 +107,7 @@ void vivictpp::libav::VideoFilter::configure(AVStream *videoStream, AVCodecConte
 
   graph.reset(avfilter_graph_alloc(), &freeFilterGraph);
 
-  enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE };
+  enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_RGB24, AV_PIX_FMT_NONE };
 
   snprintf(args, sizeof(args),
            "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",

@@ -88,7 +88,7 @@ public:
     TestContext():
         eventFilterInitializer(),
         sdlEventLoop(std::make_shared<vivictpp::sdl::SDLEventLoop>(testConfig().sourceConfigs)),
-        controller(sdlEventLoop, sdlEventLoop, testConfig()),
+        controller(sdlEventLoop.get(), sdlEventLoop.get(), testConfig()),
         thread(&vivictpp::Controller::run, &controller) {
 
     };

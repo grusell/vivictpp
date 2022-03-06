@@ -48,7 +48,7 @@ public:
   void scheduleQueueAudio(int delay) override;
   void scheduleFade(int delay) override;
   void clearAdvanceFrame() override;
-  void start(EventListener &eventListener) override;
+  void start(EventListener *eventListener) override;
   void stop() override;
 
   void displayFrame(const std::array<vivictpp::libav::Frame, 2> &frames,

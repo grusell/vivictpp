@@ -21,21 +21,23 @@ extern "C" {
 
 class VideoMetadata {
 public:
+  VideoMetadata():
+    resolution(0,0) {};
   VideoMetadata(std::string source, AVFormatContext *formatContext,
                 AVStream *videoStream);
-  const std::string source;
-  const int streamIndex;
-  const std::string pixelFormat;
-  const int width;
-  const int height;
-  const Resolution resolution;
-  const int bitrate;
-  const double frameRate;
-  const vivictpp::time::Time frameDuration;
-  const vivictpp::time::Time startTime;
-  const vivictpp::time::Time duration;
-  const vivictpp::time::Time endTime;
-  const std::string codec;
+  std::string source;
+  int streamIndex;
+  std::string pixelFormat;
+  int width;
+  int height;
+  Resolution resolution;
+  int bitrate;
+  double frameRate;
+  vivictpp::time::Time frameDuration;
+  vivictpp::time::Time startTime;
+  vivictpp::time::Time duration;
+  vivictpp::time::Time endTime;
+  std::string codec;
 
   std::string toString() const;
 };
