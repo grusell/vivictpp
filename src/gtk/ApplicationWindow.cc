@@ -169,7 +169,7 @@ bool vivictpp::gtk::DrawingArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr
   const int height = allocation.get_height();
   double scale = std::min((double) width / leftVideoMetadata.width, (double) height / leftVideoMetadata.height);
   cr->save();
-  cr->scale(scale, scale);
+//  cr->scale(scale, scale);
   (void) scale;
   logger->debug("width={}, height={}, img-width={}, image-height={}, scale={}", width, height, leftVideoMetadata.width, leftVideoMetadata.height, scale);
 
@@ -186,7 +186,7 @@ bool vivictpp::gtk::DrawingArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr
     cr->begin_new_path();
     logger->debug("drawing right frame");
     scale = std::min((double) width / rightVideoMetadata.width, (double) height / rightVideoMetadata.height);
-    cr->scale(scale, scale);
+    //  cr->scale(scale, scale);
     image = createImage(frames[1].avFrame(), rightVideoMetadata);
     double x = image->get_width() * displayState.splitPercent / 100.0;
     Gdk::Cairo::set_source_pixbuf(cr, image);
