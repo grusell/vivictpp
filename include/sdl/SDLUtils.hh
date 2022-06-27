@@ -16,6 +16,8 @@ extern "C" {
 #include <string>
 #include <stdexcept>
 
+#include "libav/Frame.hh"
+
 namespace vivictpp {
 namespace sdl {
 
@@ -44,6 +46,9 @@ std::unique_ptr<SDL_Texture, std::function<void(SDL_Texture *)>>
 
 std::unique_ptr<SDL_Cursor, std::function<void(SDL_Cursor *)>>
   createHandCursor();
+
+void updateYuvTextureFromFrame(std::unique_ptr<SDL_Texture, std::function<void(SDL_Texture *)>> &texture,
+                               const vivictpp::libav::Frame &frame);
 
 }  // sdl
 }  // vivictpp

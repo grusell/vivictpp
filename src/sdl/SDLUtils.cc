@@ -65,3 +65,17 @@ vivictpp::sdl::createHandCursor() {
   }
   return cursor;
 }
+
+
+void vivictpp::sdl::updateYuvTextureFromFrame(std::unique_ptr<SDL_Texture, std::function<void(SDL_Texture *)>> &texture,
+                                              const vivictpp::libav::Frame &frame) {
+  if (frame.empty()) {
+    return;
+  }
+  AVFrame *f = frame.avFrame();
+  SDL_UpdateYUVTexture(
+                       texture.get(), nullptr,
+                       f->data[0], f->linesize[0],
+                       f->data[1], f->linesize[1],
+                       f->data[2], f->linesize[2]);
+}

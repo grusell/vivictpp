@@ -231,36 +231,47 @@ void vivictpp::ui::ScreenOutput::renderSplash() {
   SDL_RenderPresent(renderer.get());
 }
 
+vivictpp::ui::TextTexture &vivictpp::ui::ScreenOutput::videoNotAvailable() {
+  if (!videoNotAvailableTexture) {
+    SDL_Color white = {255,255,255,255};
+    videoNotAvailableTexture.reset(new vivictpp::ui::TextTexture(renderer.get(), "NO VIDEO", 36, white));
+  }
+  return *videoNotAvailableTexture.get();
+}
+
 void vivictpp::ui::ScreenOutput::displayFrame(
     const std::array<vivictpp::libav::Frame, 2> &frames,
     const DisplayState &displayState) {
   float splitPercent = displayState.splitPercent;
+  const vivictpp::libav::Frame &leftFrame = frames[0];
+  const vivictpp::libav::Frame &rightFrame = frames[1];
   AVFrame *frame1 = frames[0].avFrame();
   AVFrame *frame2 = frames[1].avFrame();
   SDL_GetRendererOutputSize(renderer.get(), &width, &height);
   logger->trace("renderWidth={} renderHeight={}", width, height);
   updateRectangles(displayState);
-  SDL_UpdateYUVTexture(
-                       leftTexture.get(), nullptr,
-                       frame1->data[0], frame1->linesize[0],
-                       frame1->data[1], frame1->linesize[1],
-                       frame1->data[2], frame1->linesize[2]);
-  if (frame2 != nullptr) {
-      SDL_UpdateYUVTexture(
-                       rightTexture.get(), nullptr,
-                       frame2->data[0], frame2->linesize[0],
-                       frame2->data[1], frame2->linesize[1],
-                       frame2->data[2], frame2->linesize[2]);
-
-  }
   SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer.get());
-
+  
   SDL_RenderSetClipRect(renderer.get(), &destRectLeft);
-  SDL_RenderCopy(renderer.get(), leftTexture.get(), &sourceRectLeft, &destRect);
+  if (leftFrame.empty()) {
+    SDL_SetRenderDrawColor(renderer.get(), 100, 100, 100, SDL_ALPHA_OPAQUE);
+    SDL_RenderFillRect(renderer.get(), nullptr);
+    videoNotAvailable().render(renderer.get(), 20, height / 2);
+  } else {
+    vivictpp::sdl::updateYuvTextureFromFrame(leftTexture, frames[0]);
+    SDL_RenderCopy(renderer.get(), leftTexture.get(), &sourceRectLeft, &destRect);
+  }
   if (!displayState.splitScreenDisabled) {
     SDL_RenderSetClipRect(renderer.get(), &destRectRight);
-    SDL_RenderCopy(renderer.get(), rightTexture.get(), &sourceRectRight, &destRect);
+    if (rightFrame.empty()) {
+      SDL_SetRenderDrawColor(renderer.get(), 100, 100, 100, SDL_ALPHA_OPAQUE);
+      SDL_RenderFillRect(renderer.get(), nullptr);
+      videoNotAvailable().render(renderer.get(), width - videoNotAvailable().width - 20, height / 2);
+    } else {
+      vivictpp::sdl::updateYuvTextureFromFrame(rightTexture, frames[1]);
+      SDL_RenderCopy(renderer.get(), rightTexture.get(), &sourceRectRight, &destRect);
+    }
   }
   SDL_RenderSetClipRect(renderer.get(), nullptr);
   if (displayState.displayTime) {
@@ -268,11 +279,12 @@ void vivictpp::ui::ScreenOutput::displayFrame(
   }
   if (displayState.displayMetadata) {
     leftMetadataBox.render(renderer.get());
-    if (frame2 != nullptr) {
+    if (!displayState.splitScreenDisabled) {
       rightMetadataBox.render(renderer.get());
     }
   }
   if (!displayState.isPlaying && displayState.displayMetadata) {
+    if (!leftFrame.empty()) {
       std::string text = std::string("Frametype: ")
                          + av_get_picture_type_char(frame1->pict_type)
                          + std::string("\nFrame size: ") + std::to_string(frame1->pkt_size);
@@ -284,8 +296,9 @@ void vivictpp::ui::ScreenOutput::displayFrame(
       }
       leftFrameBox.setText(text);
       leftFrameBox.render(renderer.get());
-      if (frame2 != nullptr) {
-        text = std::string("Frametype: ")
+    }
+    if (!rightFrame.empty()) {
+      std::string text = std::string("Frametype: ")
                        + av_get_picture_type_char(frame2->pict_type)
                + std::string("\nFrame size: ") + std::to_string(frame2->pkt_size);
         if (!sourceConfigs[1].vmafLog.empty()) {
@@ -304,7 +317,7 @@ void vivictpp::ui::ScreenOutput::displayFrame(
     frameOffsetBox.setY(y);
     frameOffsetBox.render(renderer.get());
   }
-  if (frame2 != nullptr) {
+  if (!displayState.splitScreenDisabled) {
     SDL_SetRenderDrawBlendMode(renderer.get(), SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer.get(), 255, 255, 255, 50);
     int x = (int)(width * splitPercent / 100);

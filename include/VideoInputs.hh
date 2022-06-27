@@ -24,6 +24,7 @@ extern "C" {
 struct MediaPipe {
     std::shared_ptr<vivictpp::workers::PacketWorker> packetWorker;
     std::shared_ptr<vivictpp::workers::DecoderWorker> decoder;
+    VideoMetadata& metadata() { return packetWorker->getVideoMetadata()[0]; }
 };
 
 class VideoInputs {
@@ -47,18 +48,18 @@ public:
     void stepBackward(vivictpp::time::Time pts);
     void dropIfFullAndOutOfRange(vivictpp::time::Time nextPts, int framesToDrop);
     void dropIfFullAndNextOutOfRange(vivictpp::time::Time currentPts, int framesToDrop);
-    std::array<vivictpp::libav::Frame, 2> firstFrames();
+    std::array<vivictpp::libav::Frame, 2> firstFrames(vivictpp::time::Time pts);
     void seek(vivictpp::time::Time pts);
     std::array<std::vector<VideoMetadata>, 2> metadata();
     vivictpp::time::Time duration();
     vivictpp::time::Time startTime();
     vivictpp::time::Time minPts() {
-        VideoMetadata meta1 = leftInput.packetWorker->getVideoMetadata()[0];
+        VideoMetadata meta1 = leftInput.metadata();
         if (!rightInput.packetWorker) {
             return meta1.startTime - leftPtsOffset;
         }
-        VideoMetadata meta2 = rightInput.packetWorker->getVideoMetadata()[0];
-        return std::max(meta1.startTime - leftPtsOffset, meta2.startTime);
+        VideoMetadata meta2 = rightInput.metadata();
+        return std::min(meta1.startTime - leftPtsOffset, meta2.startTime);
     }
     vivictpp::time::Time maxPts() {
         VideoMetadata meta1 = leftInput.packetWorker->getVideoMetadata()[0];
@@ -66,7 +67,7 @@ public:
             return meta1.endTime - leftPtsOffset;
         }
         VideoMetadata meta2 = rightInput.packetWorker->getVideoMetadata()[0];
-        return std::min(meta1.endTime - leftPtsOffset, meta2.endTime);
+        return std::max(meta1.endTime - leftPtsOffset, meta2.endTime);
     }
         int leftFrameOffset() { return _leftFrameOffset; }
     int increaseLeftFrameOffset() {

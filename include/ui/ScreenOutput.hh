@@ -17,6 +17,7 @@ extern "C" {
 
 #include "ui/DisplayState.hh"
 #include "ui/TextBox.hh"
+#include "ui/TextTexture.hh"
 #include "ui/VmafGraph.hh"
 #include "vmaf/VmafLog.hh"
 #include "VideoMetadata.hh"
@@ -104,6 +105,7 @@ private:
   TextBox splashText;
   VmafGraph vmafGraph;
   vivictpp::logging::Logger logger;
+  std::unique_ptr<vivictpp::ui::TextTexture> videoNotAvailableTexture;
 
  private:
   Resolution getTargetResolution();
@@ -121,6 +123,7 @@ private:
                           const vivictpp::ui::DisplayState &displayState);
   Uint8 *offsetPlaneLeft(const AVFrame *frame, const int plane,
                          const vivictpp::ui::DisplayState &displayState);
+  vivictpp::ui::TextTexture &videoNotAvailable();
 };
 
 void setRectangle(SDL_Rect &rect, int x, int y, int w, int h);

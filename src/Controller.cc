@@ -64,11 +64,11 @@ void vivictpp::Controller::fade() {
 
 void vivictpp::Controller::refreshDisplay() {
   logger->trace("vivictpp::Controller::refreshDisplay");
-  std::array<vivictpp::libav::Frame, 2> frames = vivictPP.getVideoInputs().firstFrames();
-  if (displayState.displayTime) {
-    displayState.timeStr = vivictpp::time::formatTime(vivictPP.getPts());
-  }
   displayState.pts = vivictPP.getPts();
+  std::array<vivictpp::libav::Frame, 2> frames = vivictPP.getVideoInputs().firstFrames(displayState.pts);
+  if (displayState.displayTime) {
+    displayState.timeStr = vivictpp::time::formatTime(displayState.pts);
+  }
   // TODO: Take start time into consideration
   displayState.seekBarRelativePos = (displayState.pts - startTime) / inputDuration;
   display->displayFrame(frames, displayState);

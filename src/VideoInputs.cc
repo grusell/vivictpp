@@ -45,9 +45,20 @@ VideoInputs::VideoInputs(VivictPPConfig vivictPPConfig):
   }
 }
 
+bool inputHasPts(MediaPipe& input, vivictpp::time::Time pts) {
+  return pts >= input.metadata().startTime && pts <= input.metadata().endTime;
+}
+
 bool VideoInputs::ptsInRange(vivictpp::time::Time pts) {
-  return !vivictpp::time::isNoPts(pts) && leftInput.decoder->frames().ptsInRange(pts + leftPtsOffset) &&
-    (!rightInput.decoder || rightInput.decoder->frames().ptsInRange(pts));
+  if (vivictpp::time::isNoPts(pts) || pts < minPts() || pts > maxPts()) {
+    return false;
+  }
+  bool leftInRange = !inputHasPts(leftInput, pts + leftPtsOffset) ||
+                     leftInput.decoder->frames().ptsInRange(pts + leftPtsOffset);
+  bool rightInRange = !rightInput.decoder ||
+                      !inputHasPts(rightInput, pts) ||
+                      rightInput.decoder->frames().ptsInRange(pts);
+  return leftInRange && rightInRange;
 }
 
 vivictpp::time::Time VideoInputs::duration() {
@@ -105,10 +116,11 @@ void VideoInputs::dropIfFullAndOutOfRange(vivictpp::time::Time nextPts, int fram
   }
 }
 
-std::array<vivictpp::libav::Frame, 2> VideoInputs::firstFrames() {
-  std::array<vivictpp::libav::Frame, 2> result = {leftInput.decoder->frames().first(),
-                                                  rightInput.decoder ? rightInput.decoder->frames().first()
-                                                  : vivictpp::libav::Frame::emptyFrame()};
+std::array<vivictpp::libav::Frame, 2> VideoInputs::firstFrames(vivictpp::time::Time pts) {
+  vivictpp::libav::Frame leftFrame = inputHasPts(leftInput, pts + leftPtsOffset) ? leftInput.decoder->frames().first() : vivictpp::libav::Frame::emptyFrame();
+  vivictpp::libav::Frame rightFrame = (rightInput.decoder && inputHasPts(rightInput, pts)) ? rightInput.decoder->frames().first() :
+                     vivictpp::libav::Frame::emptyFrame();
+  std::array<vivictpp::libav::Frame, 2> result = {leftFrame, rightFrame};
   return result;
 }
 
