@@ -287,7 +287,8 @@ void vivictpp::ui::ScreenOutput::displayFrame(
     if (!displayState.isPlaying) {
       std::string text = std::string("Frametype: ")
                          + av_get_picture_type_char(frame1->pict_type)
-                         + std::string("\nFrame size: ") + std::to_string(frame1->pkt_size);
+                         + std::string("\nFrame size: ") + std::to_string(frame1->pkt_size)
+                         + std::string("\nFrame number: ") + std::to_string(frame1->coded_picture_number);
       if (!sourceConfigs[0].vmafLog.empty()) {
         int frameN = (int)((displayState.pts - leftVideoMetadata->startTime)
                            * leftVideoMetadata->frameRate);
@@ -298,7 +299,8 @@ void vivictpp::ui::ScreenOutput::displayFrame(
       if (frame2 != nullptr) {
         text = std::string("Frametype: ")
                        + av_get_picture_type_char(frame2->pict_type)
-               + std::string("\nFrame size: ") + std::to_string(frame2->pkt_size);
+               + std::string("\nFrame size: ") + std::to_string(frame2->pkt_size)
+               + std::string("\nFrame number: ") + std::to_string(frame1->coded_picture_number);
         if (!sourceConfigs[1].vmafLog.empty()) {
           int frameN = (int)((displayState.pts - rightVideoMetadata->startTime)
                          * rightVideoMetadata->frameRate);
