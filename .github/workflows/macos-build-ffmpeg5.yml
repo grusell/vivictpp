@@ -17,6 +17,8 @@ jobs:
         uses: BSFishy/meson-build@v1.0.3
         with:
           action: build
+      - name: test
+        run: build/vivictpp
       - name: Save logs
         if: always()
         uses: actions/upload-artifact@v2
