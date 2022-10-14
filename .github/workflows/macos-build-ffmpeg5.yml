@@ -10,7 +10,7 @@ jobs:
       - name: Install ffmpeg and ssl
         run: |
           brew update
-          brew install meson ninja cmake sdl2 sdl2_ttf ffmpeg
+          brew install meson ninja cmake sdl2 sdl2_ttf ffmpeg xquartz
       - name: Meson build
         env:
           PKG_CONFIG_PATH: "/usr/local/opt/ffmpeg@4/lib/pkgconfig"
@@ -18,7 +18,11 @@ jobs:
         with:
           action: build
       - name: test
-        run: build/vivictpp
+        env:
+          COLUMNS: 80 # Needed for xvfb-run
+        run: |
+          cd build
+          ./playbackTest
       - name: Save logs
         if: always()
         uses: actions/upload-artifact@v2
