@@ -10,7 +10,7 @@ extern "C" {
 #include <SDL.h>
 }
 
-
+#include <atomic>
 #include <vector>
 #include <chrono>
 #include <thread>
@@ -20,6 +20,7 @@ extern "C" {
 #include "time/TimeUtils.hh"
 #include "time/Time.hh"
 #include <stdlib.h>
+
 
 /*
 
@@ -84,20 +85,58 @@ private:
 
 };
 
+class SdlContainer {
+public:
+  SdlContainer():
+      eventFilterInitializer(),
+      sdlEventLoop(std::make_shared<vivictpp::sdl::SDLEventLoop>(testConfig().sourceConfigs)),
+      controller(sdlEventLoop, sdlEventLoop, testConfig()) {
+
+  };
+
+    ~SdlContainer() {
+    };
+
+    void start() {
+        controller.run();
+    }
+
+    void stop() {
+        controller.onQuit();
+    }
+
+    double currentPts() { return controller.getPlayerState().pts; }
+
+    EventFilterInitializer eventFilterInitializer;
+    std::shared_ptr<vivictpp::sdl::SDLEventLoop> sdlEventLoop;
+    vivictpp::Controller controller;
+};
+
 class TestContext{
 public:
     TestContext():
-        eventFilterInitializer(),
-        sdlEventLoop(std::make_shared<vivictpp::sdl::SDLEventLoop>(testConfig().sourceConfigs)),
-        controller(sdlEventLoop, sdlEventLoop, testConfig()),
-        thread(&vivictpp::Controller::run, &controller) {
-
+        sdlContainer(),
+        ready(false),
+        thread(&TestContext::start, this) {
+        while(!ready) {
+            
+        }
     };
 
     ~TestContext() {
-        controller.onQuit();
+        if (sdlContainer) {
+            sdlContainer->stop();
+        }
         thread.join();
     };
+
+    void start() {
+        SdlContainer sdlContainer;
+        this->sdlContainer = &sdlContainer;
+        this->ready = true;
+        sdlContainer.start();
+        this->sdlContainer = nullptr;
+    }
 
     void stepForward() {
         mockKeyEvent(SDLK_PERIOD);
@@ -119,11 +158,10 @@ public:
         mockKeyEvent(SDLK_SPACE);
     }
 
-    double currentPts() { return controller.getPlayerState().pts; }
+    double currentPts() { return sdlContainer->controller.getPlayerState().pts; }
 
-    EventFilterInitializer eventFilterInitializer;
-    std::shared_ptr<vivictpp::sdl::SDLEventLoop> sdlEventLoop;
-    vivictpp::Controller controller;
+    SdlContainer *sdlContainer;
+    std::atomic_bool ready;
     std::thread thread;
 };
 
@@ -139,7 +177,7 @@ TEST_CASE( "Seeking" ) {
         testContext.seekForward();
         testContext.seekForward();
         sleepMillis(500);
-        vivictpp::time::Time t = testContext.controller.getPlayerState().pts;
+        vivictpp::time::Time t = testContext.currentPts();
 
         REQUIRE( t == vivictpp::time::seconds(10));
     }
@@ -150,7 +188,7 @@ TEST_CASE( "Seeking" ) {
         sleepMillis(200);
         testContext.seekBackward();
         sleepMillis(200);
-        vivictpp::time::Time t = testContext.controller.getPlayerState().pts;
+        vivictpp::time::Time t = testContext.currentPts();
 
         REQUIRE( t == vivictpp::time::seconds(5));
     }
@@ -162,7 +200,7 @@ TEST_CASE( "Seeking" ) {
         sleepMillis(200);
         testContext.seekBackward();
         sleepMillis(200);
-        vivictpp::time::Time t = testContext.controller.getPlayerState().pts;
+        vivictpp::time::Time t = testContext.currentPts();
 
         REQUIRE(t == 0);
 
@@ -175,24 +213,24 @@ TEST_CASE( "Test playback" ) {
     sleepMillis(100);
 
     SECTION("Starts at pts 0") {
-        vivictpp::time::Time t = testContext.controller.getPlayerState().pts;
+        vivictpp::time::Time t = testContext.currentPts();
 
         REQUIRE(t == 0);
     }
 
     SECTION("Playback speed") {
         testContext.togglePlay();
-        uint64_t a0 = testContext.controller.getPlayerState().lastFrameAdvance;
+        uint64_t a0 = testContext.sdlContainer->controller.getPlayerState().lastFrameAdvance;
         while (a0 == std::numeric_limits<uint64_t>::min()) {
             sleepMillis(1);
-            a0 = testContext.controller.getPlayerState().lastFrameAdvance;
+            a0 = testContext.sdlContainer->controller.getPlayerState().lastFrameAdvance;
         }
-        vivictpp::time::Time t0 = testContext.controller.getPlayerState().pts;
+        vivictpp::time::Time t0 = testContext.currentPts();
 
         sleepSeconds(10);
 
-        vivictpp::time::Time t1 = testContext.controller.getPlayerState().pts;
-        uint64_t a1 = testContext.controller.getPlayerState().lastFrameAdvance;
+        vivictpp::time::Time t1 = testContext.currentPts();
+        uint64_t a1 = testContext.sdlContainer->controller.getPlayerState().lastFrameAdvance;
         uint64_t b1 = vivictpp::time::relativeTimeMicros();
         uint64_t playerElapsedTimeMillis = (t1 - t0 + b1 - a1) / 1000;
 
