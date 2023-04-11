@@ -6,7 +6,7 @@
 #define SDL_SDLUTILS_HH
 
 extern "C" {
-#include <SDL.h>
+#include "SDL.h"
 }
 
 #include <functional>
